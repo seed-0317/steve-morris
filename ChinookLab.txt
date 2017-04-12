@@ -1,0 +1,190 @@
+Chinook Lab
+
+2 SQL Queries
+
+2.1 SELECT
+* Task – Select all records from the Employee table.
+
+Select * from employees;
+
+* Task – Select all records from the Employee table where last name is King.
+
+select * from employees where last_name = 'King';
+
+* Task – Select all records from the Employee table where first name is Andrew and REPORTSTO is NULL.
+
+select * from employees where first_name = 'Andrew' and reports_to is NULL;
+
+2.2 ORDER BY
+* Task – Select all albums in Album table and sort result set in descending order by title.
+
+select * from albums order by title desc;
+
+* Task – Select first name from Customer and sort result set in ascending order by city
+
+select first_name from customers order by city;
+
+2.3 INSERT INTO
+* Task – Insert two new records into Genre table
+
+insert into genres (id,name) values (26, 'Musical Theater');
+insert into genres (id,name) values (27, 'Samba');
+
+* Task – Insert two new records into Employee table
+insert into employees (id, last_name, first_name, 
+       title, reports_to, birth_date, hire_date, 
+       address, city, state, country,
+       postal_code, phone, fax, email)
+       values (9, 'Morris', 'Steve', 
+               'US Boss', 1,'1961-02-16', '2017-04-07',
+               '123 Mystreet', 'Mycity', 'VA', 'United States', 
+               '23059',
+               '+1 (804) 836-2018', '+1(804) 836-2010', 'steve2@chinook.com')
+       ;
+insert into employees (id, last_name, first_name, 
+       title, reports_to, birth_date, hire_date, 
+       address, city, state, country,
+       postal_code, phone, fax, email)
+       values (10, 'Underling', 'Joe', 
+               'US Slave', 9,'1981-12-16', '2017-04-07',
+               '123 Mystreet', 'Mycity', 'VA', 'United States', 
+               '23059',
+               '+1 (804) 836-2019', '+1(804) 836-2011', 'Joe2@chinook.com')
+       ;
+
+* Task – Insert two new records into Customer table
+insert into customers 
+(id, first_name, last_name, company,
+ address, city, state, country,
+ postal_code, phone, fax,
+ email, support_rep_id)
+ values
+ (60, 'Mike', 'Byzalot', 'Wantzit', 
+  '1 Wantzit Dr', 'Richmond', 'VA', 'United States',
+  '23059', '+1(804)284-4604', '+1(804)284-4605',
+  'mike@Wantzit.com', 9);
+
+insert into customers 
+(id, first_name, last_name, company,
+ address, city, state, country,
+ postal_code, phone, fax,
+ email, support_rep_id)
+ values
+ (61, 'Melody', 'Byzsome', 'Wantzit', 
+  '1 Wantzit Dr', 'Richmond', 'VA', 'United States',
+  '23059', '+1(804)284-5604', '+1(804)284-4605',
+  'mel@Wantzit.com', 9);
+
+
+2.4 UPDATE
+* Task – Update Aaron Mitchell in Customer table to Robert Walter
+
+update customers
+set first_name = 'Robert',
+    last_name = 'Walter'
+where first_name = 'Aaron'
+  and last_name = 'Mitchell'
+;
+
+* Task – Update name of artist in the Artist table “Creedence Clearwater Revival” to “CCR”
+
+
+update artists set name = 'CCR'
+where name ='Creedence Clearwater Revival';
+
+       
+2.5 LIKE
+* Task – Select all invoices with a billing address like “T%”
+
+select * from invoices where billing_address like 'T%';
+
+
+2.6 BETWEEN
+* Task – Select all invoices that have a total between 15 and 50
+
+select * from invoices where total between 15 and 50;
+
+
+* Task – Select all employees hired between 1st of June 2003 and 1st of March 2004
+
+select * from employees where hire_date between '2003-06-01' and '2004-03-01';
+
+
+2.7 DELETE
+* Task – Delete a record in Customer table where the name is Robert Walter (There may be constraints that rely on this, find out how to resolve them).
+
+/*Start the transaction*/
+begin;
+
+/* First delete the invoice lines tied to invoices for this customer */ delete from invoice_lines where id in(    select A.id from invoice_lines A          join invoices B on a.invoice_id = b.id          join customers C on c.id = b.customer_id    where c.id = 32 );
+
+/*Next delete the invoices tied to this customer */ delete from invoices where id in (   select A.id from invoices A     join  customers C on c.id = A.customer_id   where c.id = 32 );
+
+/* Now we can delete the customer and commit the changes*/ delete from customers where id = 32; commit; 
+
+3 SQL Functions
+
+3.1 System Defined Functions
+* Task – Create a function that returns the current time.
+
+CREATE Function currentTime() returns TIME with TIME ZONE   as $$ SELECT current_time $$   LANGUAGE SQL;
+
+
+* Task – create a function that returns the length of a mediatype from the mediatype table
+
+CREATE Function mediaLength (in int) returns INT   as $$ SELECT length(name) from media_types where id = $1 $$   LANGUAGE SQL;
+
+
+3.2 System Defined Aggregate Functions
+* Task – Create a function that returns the average total of all invoices
+* Task – Create a function that returns the most expensive track
+
+3.3 User Defined Scalar Functions
+* Task – Create a function that returns the average price of invoiceline items in the invoiceline table
+
+3.4 User Defined Table Valued Functions
+* Task – Create a function that returns all employees who are born after 1968.
+
+4 Stored Procedures
+In this section you will be creating and executing stored procedures. You will be creating various types of stored procedures that take input and output parameters.
+
+4.1 Basic Stored Procedure
+* Task – Create a stored procedure that selects the first and last names of all the employees.
+
+4.2 Stored Procedure Input Parameters
+* Task – Create a stored procedure that updates the personal information of an employee.
+* Task – Create a stored procedure that returns the managers of an employee.
+
+4.3 Stored Procedure Output Parameters
+* Task – Create a stored procedure that returns the name and company of a customer.
+
+5 Transactions
+In this section you will be working with transactions. Transactions are usually nested within a stored procedure.
+* Task – Create a transaction that given a invoiceId will delete that invoice (There may be constraints that rely on this, find out how to resolve them).
+* Task – Create a transaction nested within a stored procedure that inserts a new record in the Customer table
+
+6 Triggers
+In this section you will create various kinds of triggers that work when certain DML statements are executed on a table.
+
+6.1 AFTER/FOR
+* Task - Create an after insert trigger on the employee table fired after a new record is inserted into the table.
+* Task – Create an after update trigger on the album table that fires after a row is inserted in the table
+* Task – Create an after delete trigger on the customer table that fires after a row is deleted from the table.
+
+7 Joins
+In this section you will be working with combing various tables through the use of joins. You will work with outer, inner, right, left, cross, and self joins.
+
+7.1 INNER
+* Task – Create an inner join that joins customers and orders and specifies the name of the customer and the invoiceId.
+
+7.2 OUTER
+* Task – Create an outer join that joins the customer and invoice table, specifying the CustomerId, firstname, lastname, invoiceId, and total.
+
+7.3 RIGHT
+* Task – Create a right join that joins album and artist specifying artist name and title.
+
+7.4 CROSS
+* Task – Create a cross join that joins album and artist and sorts by artist name in ascending order.
+
+7.5 SELF
+* Task – Perform a self-join on the employee table, joining on the reportsto column.
