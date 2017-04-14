@@ -185,15 +185,85 @@ In this section you will be working with transactions. Transactions are usually 
 
 * Task – Create a transaction that given a invoiceId will delete that invoice (There may be constraints that rely on this, find out how to resolve them).
 
+begin;
+delete from invoice_lines where id in(
+  select A.id from invoice_lines A
+    join invoices B on a.invoice_id = b.id
+    where b.id = 27 );
+delete from invoices where id = 27
+commit;
+
 * Task – Create a transaction nested within a stored procedure that inserts a new record in the Customer table
+
+
+CREATE Function insertCustomer(in int, in varchar(40), in varchar(20), in varchar(80),
+         in varchar(70), in varchar(40), in varchar(40), in varchar(40),
+         in varchar(10), in varchar(24), in varchar(24), in varchar(60),
+         in int ) returns void AS
+$$
+begin;
+insert into customers
+(id, first_name, last_name, company,
+ address, city, state, country,
+ postal_code, phone, fax, email,
+ support_rep_id)
+values
+  ( $1, $2, $3, $4,
+    $5, $6, $7, $8,
+    $9, $10, $11, $12,
+    $13);
+commit;
+$$
+language sql;
+
 
 6 Triggers
 In this section you will create various kinds of triggers that work when certain DML statements are executed on a table.
 
 6.1 AFTER/FOR
 * Task - Create an after insert trigger on the employee table fired after a new record is inserted into the table.
+
+create function log_new_employee() returns trigger as $$
+begin
+  raise notice 'new employee: %', NEW.id;
+  return NEW;
+end; $$ language plpgsql;
+
+CREATE TRIGGER new_employee_log_trigger
+AFTER INSERT
+  ON employees
+FOR EACH ROW
+EXECUTE PROCEDURE log_new_employee();
+
 * Task – Create an after update trigger on the album table that fires after a row is inserted in the table
+
+create function log_update_album() returns trigger as $$
+begin
+  raise notice 'updated album: %', NEW.id;
+  return NEW;
+end; $$ language plpgsql;
+
+CREATE TRIGGER updated_album_log_trigger
+AFTER UPDATE
+  ON albums
+FOR EACH ROW
+EXECUTE PROCEDURE log_update_album();
+
+
 * Task – Create an after delete trigger on the customer table that fires after a row is deleted from the table.
+
+create function log_delete_customer() returns trigger as $$
+begin
+  raise notice 'deleted customer: %', NEW.id;
+  return NEW;
+end; $$ language plpgsql;
+
+CREATE TRIGGER deleted_customer_log_trigger
+AFTER DELETE
+  ON customers
+FOR EACH ROW
+EXECUTE PROCEDURE log_delete_customer();
+
 
 7 Joins
 In this section you will be working with combing various tables through the use of joins. You will work with outer, inner, right, left, cross, and self joins.
@@ -201,14 +271,35 @@ In this section you will be working with combing various tables through the use 
 7.1 INNER
 * Task – Create an inner join that joins customers and orders and specifies the name of the customer and the invoiceId.
 
+Select (a.first_name || ' ' || a.last_name) as customer_name, b.id as invoiceid
+From customers a join invoices b on a.id = b.customer_id;
+
+
 7.2 OUTER
 * Task – Create an outer join that joins the customer and invoice table, specifying the CustomerId, firstname, lastname, invoiceId, and total.
+
+select a.id as customerid, a.first_name as firstname, a.last_name as lastname, b.id as invoiceID, b.total
+From customers a full outer join invoices b on a.id = b.customer_id;
 
 7.3 RIGHT
 * Task – Create a right join that joins album and artist specifying artist name and title.
 
+select a.name, b.title
+from artists a right join albums b on a.id = b.artist_id
+
+
 7.4 CROSS
 * Task – Create a cross join that joins album and artist and sorts by artist name in ascending order.
 
+select a.name, b.title
+from artists a CROSS JOIN albums b
+order by a.name;
+
 7.5 SELF
 * Task – Perform a self-join on the employee table, joining on the reportsto column.
+
+select (a.first_name|| ' ' || a.last_name) as employee,
+      (b.first_name || ' ' ||b.Last_name) as manager
+from employees A left join employees b on a.reports_to = b.id;
+
+
