@@ -137,30 +137,54 @@ CREATE Function mediaLength (in int) returns INT   as $$ SELECT length(name) f
 
 3.2 System Defined Aggregate Functions
 * Task – Create a function that returns the average total of all invoices
+
+CREATE function aveInvoice() returns numeric(10,2) as
+$$
+select avg(total) from invoices
+$$
+language SQL;
+
 * Task – Create a function that returns the most expensive track
+
+CREATE function mostExpensiveTrack() returns table(id int, unit_price numeric(10,2), name varchar(200))
+as
+$$
+select id, unit_price, name from tracks where unit_price =
+         (select max(unit_price) from tracks)
+$$
+language SQL;
+
 
 3.3 User Defined Scalar Functions
 * Task – Create a function that returns the average price of invoiceline items in the invoiceline table
 
+CREATE Function aveInvLinePrice() returns numeric(10,2) AS
+  $$
+  Select avg(unit_price) from invoice_lines
+  $$ language SQL;
+
+
 3.4 User Defined Table Valued Functions
 * Task – Create a function that returns all employees who are born after 1968.
 
+CREATE or replace Function oldEmployees() returns
+  table (id int, last_name varchar(20), first_nmae varchar(20), birth_date timestamp)
+AS $$
+Select id, last_name, first_name, birth_date from employees
+where birth_date > '1968-12-31'
+$$
+  language SQL;
+
+
 4 Stored Procedures
-In this section you will be creating and executing stored procedures. You will be creating various types of stored procedures that take input and output parameters.
+N/A
 
-4.1 Basic Stored Procedure
-* Task – Create a stored procedure that selects the first and last names of all the employees.
-
-4.2 Stored Procedure Input Parameters
-* Task – Create a stored procedure that updates the personal information of an employee.
-* Task – Create a stored procedure that returns the managers of an employee.
-
-4.3 Stored Procedure Output Parameters
-* Task – Create a stored procedure that returns the name and company of a customer.
 
 5 Transactions
 In this section you will be working with transactions. Transactions are usually nested within a stored procedure.
+
 * Task – Create a transaction that given a invoiceId will delete that invoice (There may be constraints that rely on this, find out how to resolve them).
+
 * Task – Create a transaction nested within a stored procedure that inserts a new record in the Customer table
 
 6 Triggers
